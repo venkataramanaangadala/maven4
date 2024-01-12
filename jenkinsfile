@@ -1,0 +1,45 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Continuos Download')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/maven.git'
+            }
+        }
+        stage('Continuos Build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage('Continuos Deployment')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '7cebf433-dc86-41f5-b3e0-5ffe9c1c8eaa', path: '', url: 'http://172.31.32.184:8080')], contextPath: 'testingapp', war: '**/*.war'
+            }
+        }
+        stage('Continuos Testing')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/DeclarativePipeline2/testing.jar'
+            }
+        }
+        stage('Continuos Delivery')
+        {
+            steps
+            {
+                input message: 'Need approval from DM!', submitter: 'ravi'
+                deploy adapters: [tomcat9(credentialsId: '7cebf433-dc86-41f5-b3e0-5ffe9c1c8eaa', path: '', url: 'http://172.31.40.85:8080')], contextPath: 'prodapp1', war: '**/*.war'
+            }
+        }
+    }
+}
+
